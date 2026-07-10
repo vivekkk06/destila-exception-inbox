@@ -2,7 +2,7 @@
 
 ## System Overview
 
-Ingests two messy CSVs (a production plan and actual production output), detects plan-vs-actual deficit exceptions, persists them in a database, and serves them through a REST API to a React timeline UI where an operator can filter, inspect, and acknowledge/resolve each exception. The whole stack runs with a single `docker-compose up` command.
+Ingests two messy CSVs (a production plan and actual production output), detects plan-vs-actual deficit exceptions, persists them in a database, and serves them through a REST API to a React timeline UI where an operator can filter, inspect, and acknowledge/resolve each exception.
 
 ## Architecture Diagram
 
@@ -10,22 +10,16 @@ Ingests two messy CSVs (a production plan and actual production output), detects
 ┌──────────────────────┐    ┌───────────────────────┐    ┌──────────────┐    ┌──────────────┐
 │  CSVs (raw)          │ →  │  Ingest + Clean        │ →  │  FastAPI     │ →  │  React       │
 │  production_plan.csv │    │  (normalize, dedupe,   │    │  REST API    │    │  Timeline    │
-│  actual_production.csv│   │   parse dates,         │    │  (container) │    │  Inbox UI    │
-└──────────────────────┘    │   quarantine bad rows) │    └──────────────┘    │  (container) │
-                             └───────────────────────┘                        └──────────────┘
+│  actual_production.csv│   │   parse dates,         │    │              │    │  Inbox UI    │
+└──────────────────────┘    │   quarantine bad rows) │    └──────────────┘    └──────────────┘
+                             └───────────────────────┘
                                         │
                                         ▼
                                 ┌──────────────┐
                                 │   Database   │
                                 │   (SQLite)   │
                                 └──────────────┘
-
-  Both backend and frontend run as separate Docker containers,
-  orchestrated by docker-compose.yml, sharing a bind-mounted
-  data/ volume for the raw CSVs and generated SQLite DB.
 ```
-
-See `docs/architecture.png` for the rendered version.
 
 ## Tech Stack
 
@@ -35,7 +29,6 @@ See `docs/architecture.png` for the rendered version.
 | Backend    | FastAPI + SQLAlchemy     | Automatic OpenAPI docs, familiar Python stack, clean separation of models/schemas/services |
 | Frontend   | React + Vite             | Fast dev loop, component model matches the timeline/day-group/detail-panel structure |
 | Charting   | Recharts                 | Lightweight 7-day trend line chart in the detail panel |
-| Containers | Docker + Docker Compose  | One-command reproducible setup — `docker-compose up` builds and runs backend + frontend together |
 
 ## Database Schema
 
@@ -63,7 +56,6 @@ Raw tables are an untouched dump of the source CSVs (no type coercion), so clean
 
 ```
 ├── backend/
-│   ├── backend.Dockerfile             # backend container image
 │   ├── app/
 │   │   ├── main.py                    # FastAPI app entrypoint, CORS config
 │   │   ├── core/
@@ -84,10 +76,8 @@ Raw tables are an untouched dump of the source CSVs (no type coercion), so clean
 │   │   └── production_plan.csv
 │   └── requirements.txt
 ├── frontend/
-│   ├── frontend.Dockerfile            # frontend container image
 │   ├── src/
 │   │   ├── App.jsx                    # top-level state, filters, data fetching
-│   │   ├── main.jsx                   # React entry point
 │   │   ├── api.js                     # axios client
 │   │   └── components/
 │   │       ├── FilterBar.jsx
@@ -95,13 +85,10 @@ Raw tables are an untouched dump of the source CSVs (no type coercion), so clean
 │   │       ├── DayGroup.jsx
 │   │       ├── ExceptionRow.jsx
 │   │       └── DetailPanel.jsx
-│   ├── index.html
-│   ├── vite.config.js
 │   └── package.json
 ├── docs/
 │   ├── architecture.png
 │   └── process_flow.png
-├── docker-compose.yml                 # orchestrates backend + frontend containers
 ├── APPROACH.md
 ├── AI_USAGE.md
 └── README.md
@@ -112,34 +99,9 @@ Raw tables are an untouched dump of the source CSVs (no type coercion), so clean
 - **Why SQLite over Postgres?** No setup overhead for a scoped take-home test; the SQLAlchemy models would need no structural changes to run against Postgres later.
 - **Why raw/clean table separation?** Keeps the original CSV data always recoverable and lets cleaning logic be re-run independently of ingestion — a real-world necessity once you've found data quirks after the first load.
 - **How was data cleaning handled?** Normalized `sku`/`plant` casing and whitespace (`" fg-010 "` → `FG-010`), parsed mixed date formats (ISO and `DD/MM/YYYY` both appear in `production_plan.csv`), deduplicated exact-duplicate plan rows, and quarantined (rather than silently dropped or defaulted) rows with a null `planned_units`.
-- **Why Docker Compose?** One command (`docker-compose up`) builds both images and runs the full pipeline — ingest → clean → detect → serve API → serve frontend — without the reviewer needing Python/Node installed locally. The backend container runs the same ingestion/cleaning/detection services on startup as the manual setup, so behavior is identical either way.
-- **What would I change with more time?** Add pagination, a date-range filter, basic auth on the PATCH endpoint, and a multi-stage Docker build to slim the production image. Full reasoning is in `APPROACH.md`.
+- **What would I change with more time?** Add pagination, a date-range filter, basic auth on the PATCH endpoint, and Docker Compose for one-command setup. Full reasoning is in `APPROACH.md`.
 
 ## Running the Project
-
-### Option A — Docker Compose (recommended, one command)
-
-```bash
-docker-compose up --build
-```
-
-This builds both images and starts:
-- **backend** on `http://localhost:8000` — runs ingestion → cleaning → exception detection automatically on container start, then serves the API
-- **frontend** on `http://localhost:5173` — Vite dev server
-
-To run in the background:
-```bash
-docker-compose up -d
-```
-
-To stop:
-```bash
-docker-compose down
-```
-
-> **Note (Fedora/RHEL/SELinux systems):** the `backend` service's volume mount uses the `:z` suffix (`./backend/data:/app/data:z`) to relabel the SELinux context so the container can read the bind-mounted CSV directory. Without it, SELinux-enforcing hosts will throw a `PermissionError` when the container tries to read the CSVs. This isn't needed on non-SELinux systems (macOS, most Ubuntu/Debian setups) but doesn't hurt to leave in.
-
-### Option B — Manual setup (no Docker)
 
 **Backend:**
 ```bash
@@ -163,5 +125,3 @@ npm run dev
 ```
 
 Then open `http://localhost:5173` in your browser. The backend must be running on port 8000 for the frontend to fetch data.
-
-**Don't run both options at once** — they'll compete for ports 8000/5173. Fully stop one (`docker-compose down`, or `Ctrl+C` both manual terminals) before switching.
