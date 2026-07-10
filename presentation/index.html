@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini Exception Inbox — Presentation</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --accent: #2563eb;
+    --accent-dark: #1d4ed8;
+    --high: #dc2626;
+    --high-bg: #fef2f2;
+    --medium: #f59e0b;
+    --medium-bg: #fffbeb;
+    --resolved: #16a34a;
+    --resolved-bg: #f0fdf4;
+    --open-bg: #f1f5f9;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* ---------- NAV ---------- */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+  }
+  nav .wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+  }
+  nav .brand {
+    font-weight: 800;
+    font-size: 0.95rem;
+    letter-spacing: -0.01em;
+  }
+  nav .links {
+    display: flex;
+    gap: 1.25rem;
+    font-size: 0.82rem;
+  }
+  nav .links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  nav .links a:hover { color: var(--accent); }
+
+  /* ---------- HERO ---------- */
+  header.hero {
+    padding: 4rem 0 3rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: #eff6ff;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    margin-bottom: 1.25rem;
+  }
+  h1.title {
+    font-size: 2.4rem;
+    line-height: 1.1;
+    margin: 0 0 0.75rem;
+    letter-spacing: -0.02em;
+    font-weight: 800;
+  }
+  .subtitle {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    max-width: 640px;
+    margin: 0 0 1.75rem;
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .stack-badge {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius, 8px);
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  /* ---------- SECTIONS ---------- */
+  section {
+    padding: 3.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  section:last-of-type { border-bottom: none; }
+
+  .section-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  h2.section-title {
+    font-size: 1.7rem;
+    margin: 0 0 0.5rem;
+    letter-spacing: -0.01em;
+    font-weight: 800;
+  }
+  .section-intro {
+    color: var(--text-muted);
+    max-width: 680px;
+    margin: 0 0 2rem;
+    font-size: 0.98rem;
+  }
+
+  /* ---------- SCREENSHOT CARDS ---------- */
+  .shot {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+    margin-bottom: 2rem;
+  }
+  .shot img {
+    width: 100%;
+    display: block;
+    border-bottom: 1px solid var(--border);
+  }
+  .shot-caption {
+    padding: 0.9rem 1.1rem;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+  }
+  .shot-caption strong { color: var(--text); }
+
+  .shot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  @media (max-width: 720px) {
+    .shot-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- DIAGRAM CARD ---------- */
+  .diagram-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+    margin-bottom: 1.5rem;
+  }
+  .diagram-card img { width: 100%; display: block; }
+
+  /* ---------- FINDINGS LIST ---------- */
+  .findings {
+    display: grid;
+    gap: 0.9rem;
+  }
+  .finding {
+    display: flex;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .finding-icon {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    background: var(--medium-bg);
+    color: var(--medium);
+  }
+  .finding-body strong { display: block; margin-bottom: 0.2rem; color: var(--text); }
+  .finding-body span { color: var(--text-muted); font-size: 0.9rem; }
+
+  /* ---------- SCHEMA ---------- */
+  pre.code-block {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 1.25rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    line-height: 1.6;
+    margin: 0 0 1.5rem;
+  }
+
+  /* ---------- TABLE ---------- */
+  table.tradeoffs {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.9rem;
+  }
+  table.tradeoffs th {
+    text-align: left;
+    background: var(--bg);
+    padding: 0.7rem 1rem;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  table.tradeoffs td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.tradeoffs tr:last-child td { border-bottom: none; }
+
+  /* ---------- DOCKER STORY ---------- */
+  .story-steps {
+    display: grid;
+    gap: 1rem;
+  }
+  .story-step {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .story-num {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--high-bg);
+    color: var(--high);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+  }
+  .story-step.resolved .story-num {
+    background: var(--resolved-bg);
+    color: var(--resolved);
+  }
+  .story-body strong { display: block; margin-bottom: 0.2rem; }
+  .story-body span { color: var(--text-muted); font-size: 0.88rem; }
+  .story-body code {
+    background: var(--open-bg);
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-size: 0.82rem;
+  }
+
+  /* ---------- STAT ROW ---------- */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: 1fr 1fr; }
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-top: 0.25rem;
+  }
+
+  /* ---------- LINKS ---------- */
+  .link-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    border: 1px solid var(--border);
+  }
+  .link-btn.primary {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .link-btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    padding: 2.5rem 0 4rem;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">Mini Exception Inbox</div>
+    <div class="links">
+      <a href="#demo">Demo</a>
+      <a href="#data">Data</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#docker">Docker</a>
+      <a href="#tradeoffs">Tradeoffs</a>
+      <a href="#ai">AI Usage</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">Intern Hiring Test — Submission Walkthrough</span>
+    <h1 class="title">Mini Exception Inbox</h1>
+    <p class="subtitle">
+      Two messy CSVs in, a day-by-day operator inbox out. This walks through the data findings,
+      schema, API, UI, and the real debugging that went into getting Docker Compose working end to end.
+    </p>
+    <div class="badges">
+      <span class="stack-badge">FastAPI</span>
+      <span class="stack-badge">SQLAlchemy · SQLite</span>
+      <span class="stack-badge">React + Vite</span>
+      <span class="stack-badge">Recharts</span>
+      <span class="stack-badge">Docker Compose</span>
+    </div>
+  </div>
+</header>
+
+<section id="demo">
+  <div class="wrap">
+    <div class="section-label">Live Demo</div>
+    <h2 class="section-title">End-to-end walkthrough</h2>
+    <p class="section-intro">
+      Exceptions are grouped into a day-by-day timeline — newest day first, worst deficit first within a day —
+      exactly as specified. Every screenshot below is the actual running app.
+    </p>
+
+    <div class="shot">
+      <img src="assets/timeline-view.png" alt="Timeline view showing exceptions grouped by day" />
+      <div class="shot-caption">
+        <strong>Timeline view.</strong> Collapsible day groups, newest date first. Each row shows product,
+        plant, severity badge, status badge, and the planned-vs-actual deficit.
+      </div>
+    </div>
+
+    <div class="shot-grid">
+      <div class="shot">
+        <img src="assets/severity-filter.png" alt="Severity filter set to High" />
+        <div class="shot-caption"><strong>Severity filter</strong> narrowed to High — deficit &gt; 30% across multiple days.</div>
+      </div>
+      <div class="shot">
+        <img src="assets/product-dropdown.png" alt="Product filter dropdown open" />
+        <div class="shot-caption"><strong>Product filter dropdown</strong> — options populate dynamically from the current result set.</div>
+      </div>
+    </div>
+
+    <div class="shot-grid">
+      <div class="shot">
+        <img src="assets/detail-panel-resolved.png" alt="Detail panel for a resolved exception" />
+        <div class="shot-caption"><strong>Detail panel — resolved.</strong> Full numbers plus a 7-day plan-vs-actual trend chart and table.</div>
+      </div>
+      <div class="shot">
+        <img src="assets/detail-panel-acknowledged.png" alt="Detail panel for an acknowledged exception" />
+        <div class="shot-caption"><strong>Status updates instantly</strong> — Acknowledge/Resolve mutate state locally after the PATCH, no page reload.</div>
+      </div>
+    </div>
+
+    <div class="shot">
+      <img src="assets/product-filter-result.png" alt="Product filter applied showing single product timeline" />
+      <div class="shot-caption">
+        <strong>Product filter applied</strong> (FG-001) — timeline re-groups to show only that product's exception history across every day it occurred.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="data">
+  <div class="wrap">
+    <div class="section-label">Data Handling</div>
+    <h2 class="section-title">What the data actually looked like</h2>
+    <p class="section-intro">
+      The assignment's own hint — "look at the data before you load it" — turned out to matter. Both CSVs
+      were inspected with pandas before any ingestion code was written.
+    </p>
+
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num">1085</div><div class="stat-label">Plan rows</div></div>
+      <div class="stat-card"><div class="stat-num">1080</div><div class="stat-label">Actual rows</div></div>
+      <div class="stat-card"><div class="stat-num">384</div><div class="stat-label">Exceptions detected</div></div>
+      <div class="stat-card"><div class="stat-num">2</div><div class="stat-label">Rows quarantined</div></div>
+    </div>
+
+    <div class="findings">
+      <div class="finding">
+        <div class="finding-icon">⚠</div>
+        <div class="finding-body">
+          <strong>Dirty SKU formatting in production_plan.csv</strong>
+          <span>Mixed case and stray whitespace (<code>" fg-010 "</code> vs <code>FG-010</code>) across ~18 SKU variants. A naive join would have silently missed them. Fixed by normalizing both sides with <code>.strip().upper()</code> during cleaning, not by patching the join.</span>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-icon">⚠</div>
+        <div class="finding-body">
+          <strong>Mixed date formats in plan_date</strong>
+          <span>Mostly ISO (<code>2017-03-05</code>), but at least one row was <code>12/03/2017</code> — genuinely ambiguous (Dec 3 or Mar 12). Crashed a naive single-format parser; fixed with a fallback parser and flagged the day/month assumption explicitly rather than treating it as settled.</span>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-icon">⚠</div>
+        <div class="finding-body">
+          <strong>2 rows with null planned_units</strong>
+          <span>Can't compute a deficit ratio without a plan number. Quarantined rather than defaulted to 0 — defaulting would have manufactured false 100%-deficit exceptions.</span>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-icon">⚠</div>
+        <div class="finding-body">
+          <strong>13 exact duplicate rows in production_plan.csv</strong>
+          <span>Deduplicated on the full row tuple before insertion into clean_plan, so exceptions aren't double-counted.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-label">Schema &amp; Architecture</div>
+    <h2 class="section-title">From raw CSV to operator inbox</h2>
+    <p class="section-intro">
+      Raw and clean data are kept in separate tables so cleaning logic can be re-run without re-touching
+      the source files, and exceptions are materialized — not computed on the fly — so status changes persist.
+    </p>
+
+    <div class="diagram-card">
+      <img src="assets/process_flow.png" alt="Process flow diagram from CSV to UI" />
+    </div>
+    <div class="diagram-card">
+      <img src="assets/architecture.png" alt="System architecture diagram" />
+    </div>
+
+    <pre class="code-block">raw_plan(id, plan_date_raw, plant_raw, sku_raw, planned_units_raw)
+raw_actual(id, date_raw, plant_id_raw, product_code_raw, units_produced_raw)
+        |                           |
+        v                           v
+clean_plan(id, date, plant, product_code, planned_units)
+clean_actual(id, date, plant, product_code, units_produced)
+        +-------------+-------------+
+                      v
+exceptions(
+  id, product_code, plant, date,
+  planned_units, actual_units, deficit_pct,
+  severity,   -- "high" | "medium"
+  status,     -- "open" | "acknowledged" | "resolved"
+  created_at, updated_at
+)</pre>
+  </div>
+</section>
+
+<section id="docker">
+  <div class="wrap">
+    <div class="section-label">Bonus — Docker Compose</div>
+    <h2 class="section-title">Getting one command to actually work</h2>
+    <p class="section-intro">
+      <code>docker-compose up</code> builds both images and runs the full ingest → clean → detect → serve
+      pipeline automatically. Getting there on Fedora surfaced two real, non-obvious environment issues.
+    </p>
+
+    <div class="story-steps">
+      <div class="story-step">
+        <div class="story-num">1</div>
+        <div class="story-body">
+          <strong>Docker daemon wouldn't start</strong>
+          <span><code>error initializing buildkit: failed to find runc binary</code> — Fedora's Docker package didn't pull in <code>runc</code> as a dependency.</span>
+        </div>
+      </div>
+      <div class="story-step resolved">
+        <div class="story-num">✓</div>
+        <div class="story-body">
+          <strong>Fixed with a package install</strong>
+          <span><code>sudo dnf install runc -y</code> + <code>systemctl restart docker</code>. Root cause found by reading the actual <code>journalctl</code> output rather than guessing.</span>
+        </div>
+      </div>
+      <div class="story-step">
+        <div class="story-num">2</div>
+        <div class="story-body">
+          <strong>Backend container hit PermissionError reading the CSVs</strong>
+          <span>Even with host file permissions confirmed correct (<code>644</code>, world-readable). A plausible-looking <code>chmod -R a+rX</code> fix did not resolve it — a real signal the diagnosis was still wrong.</span>
+        </div>
+      </div>
+      <div class="story-step resolved">
+        <div class="story-num">✓</div>
+        <div class="story-body">
+          <strong>Actual cause: SELinux context, not Unix permissions</strong>
+          <span>Fedora enforces SELinux by default; bind mounts need their context relabeled. Fixed with the <code>:z</code> suffix on the volume mount (<code>./backend/data:/app/data:z</code>) — confirmed working end to end afterward.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tradeoffs">
+  <div class="wrap">
+    <div class="section-label">Decisions</div>
+    <h2 class="section-title">Tradeoffs &amp; what I'd change</h2>
+    <table class="tradeoffs">
+      <tr><th>Decision</th><th>Reasoning</th></tr>
+      <tr>
+        <td>SQLite over Postgres</td>
+        <td>Zero setup for this scope; schema translates directly if scaling is needed later.</td>
+      </tr>
+      <tr>
+        <td>No pagination on <code>GET /exceptions</code></td>
+        <td>Dataset is small (~1000 rows); would add <code>limit</code>/<code>offset</code> for a larger one.</td>
+      </tr>
+      <tr>
+        <td>Unmatched plan/actual rows silently skipped</td>
+        <td>Simplest correct behavior for this scope — a v2 could surface these as their own category.</td>
+      </tr>
+      <tr>
+        <td>No auth on PATCH</td>
+        <td>Out of scope for the assignment goals; required before this touches a real ERP.</td>
+      </tr>
+      <tr>
+        <td>Frontend Docker image runs the Vite dev server</td>
+        <td>Fine for a demo; production would use a multi-stage build serving static assets via nginx.</td>
+      </tr>
+    </table>
+  </div>
+</section>
+
+<section id="ai">
+  <div class="wrap">
+    <div class="section-label">AI Usage</div>
+    <h2 class="section-title">How AI was used — summary</h2>
+    <p class="section-intro">
+      Full detail, verbatim prompts, and the specific case where AI got something wrong are in
+      <code>AI_USAGE.md</code>. Short version:
+    </p>
+    <div class="findings">
+      <div class="finding">
+        <div class="finding-icon" style="background:#eff6ff;color:#2563eb;">✓</div>
+        <div class="finding-body">
+          <strong>Used as a pair-programming partner throughout</strong>
+          <span>Backend scaffolding, schema design, React components, Docker setup, and debugging — every command was run and verified personally, not accepted blindly.</span>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-icon" style="background:#fef2f2;color:#dc2626;">✕</div>
+        <div class="finding-body">
+          <strong>Caught AI being wrong: date parsing</strong>
+          <span>First version assumed all dates were ISO format and crashed on <code>12/03/2017</code>. Caught by actually running the pipeline and reading the real traceback, not by inspection alone.</span>
+        </div>
+      </div>
+      <div class="finding">
+        <div class="finding-icon" style="background:#f0fdf4;color:#16a34a;">~</div>
+        <div class="finding-body">
+          <strong>Roughly 70% AI-generated, 30% hand-verified/debugged</strong>
+          <span>All runtime errors, Docker environment issues, and data verification were resolved by running real commands and reading real output.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Mini Exception Inbox — built for the Destila intern hiring test.<br />
+    Full code, docs, and diagrams in the repository.
+  </div>
+</footer>
+
+</body>
+</html>
