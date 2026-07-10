@@ -1,0 +1,20 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: backend.Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/data:/app/data:z
+    # Named volume keeps the SQLite DB alive across container restarts
+    # (still gets rebuilt fresh by the ingest/clean/detect commands on each `up`)
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: frontend.Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
