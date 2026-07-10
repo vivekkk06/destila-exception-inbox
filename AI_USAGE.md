@@ -9,20 +9,30 @@
 
 ## My 3–5 Most Important Prompts & What Came Back
 
-**1.** *(Paraphrased from my initial request, which described the project goals and asked for a full plan)*: "Help me plan this project — I've already got the folder structure in place. Give me the best approach given the scoring priorities, a database schema, a backend/frontend file breakdown, and the commands to get started."
-→ Got a full project plan: priorities matched to the assignment's scoring order, a concrete DB schema (raw/clean/exceptions tables), a backend folder-to-file mapping, a frontend component breakdown, and setup commands. This became the blueprint I followed for the rest of the build.
+**1.** *(Paraphrased and structured from my initial planning request)*:
+> "I'm building a Mini Exception Inbox for an internship assignment, scored in this priority order: data handling, backend completeness, frontend, AI usage quality, communication. I already have the folder structure in place. Give me: (1) a database schema separating raw and cleaned data, (2) a backend file-by-file breakdown mapped to my existing folders, (3) a frontend component breakdown, and (4) the exact commands to scaffold and run it. Optimize the plan for the stated scoring priorities, not just general best practice."
 
-**2.** *(Pasted the actual pandas data-inspection output showing null `planned_units`, duplicate rows, and dirty `sku` casing/whitespace)*
-→ Got a concrete cleaning strategy: normalize with `.strip().upper()`, quarantine null-plan rows instead of defaulting them to 0, and dedupe on the full row tuple — plus reasoning for why each choice was correct (e.g. defaulting nulls to 0 would create false 100%-deficit exceptions).
+→ Got a full project plan matched to the scoring order: a concrete raw/clean/exceptions schema, a backend folder-to-file mapping, a frontend component breakdown, and setup commands. This became the blueprint for the rest of the build.
 
-**3.** *(Pasted the `docker-compose up` failure: "unable to get image ... permission denied while trying to connect to the docker API")*
-→ Got a diagnosis that my user account wasn't in the `docker` group and the daemon wasn't running, plus the exact `usermod`/`systemctl` commands to fix it — which then surfaced a second, deeper error.
+**2.** *(Structured around pasted pandas inspection output)*:
+> "Here's the actual output of inspecting both CSVs with pandas before loading them: [pasted null counts, duplicate counts, and sample dirty SKU values]. Give me a cleaning strategy for each issue — normalization approach, whether to drop or quarantine bad rows, and the reasoning for each choice, not just the code."
 
-**4.** *(Pasted `journalctl` output showing "error initializing buildkit: failed to find runc binary")*
-→ Got the specific root cause (Fedora's Docker install was missing the `runc` binary dependency) and the fix (`sudo dnf install runc -y`), rather than a generic "restart Docker" suggestion.
+→ Got a concrete strategy: normalize with `.strip().upper()`, quarantine null-plan rows instead of defaulting them to 0, dedupe on the full row tuple — with reasoning for each (e.g. defaulting nulls to 0 would manufacture false 100%-deficit exceptions).
 
-**5.** *(Pasted the backend container's `PermissionError: [Errno 13] Permission denied: 'data/raw/production_plan.csv'`, after confirming host file permissions were already correct)*
-→ Got a correct SELinux diagnosis — Fedora enforces SELinux by default and bind mounts need a context relabel — with the exact fix (`:z` suffix on the volume mount in `docker-compose.yml`). This was the least obvious bug in the whole project, since the host-side permissions looked completely fine.
+**3.** *(Structured around a pasted Docker Compose failure)*:
+> "Running `docker-compose up` on Fedora fails with: [pasted: 'unable to get image ... permission denied while trying to connect to the docker API']. Diagnose the root cause — don't just suggest restarting Docker — and give me the exact commands to fix it."
+
+→ Got a diagnosis that my user account wasn't in the `docker` group and the daemon wasn't running, plus the exact `usermod`/`systemctl` commands — which then surfaced a second, deeper error.
+
+**4.** *(Structured around pasted journalctl output)*:
+> "The Docker daemon still won't start after the group fix. Here's the full `journalctl -xeu docker.service` output: [pasted, showing 'error initializing buildkit: failed to find runc binary']. What's the actual root cause, and what's the minimal fix?"
+
+→ Got the specific root cause — Fedora's Docker install was missing the `runc` binary dependency — and the fix (`sudo dnf install runc -y`), rather than a generic troubleshooting checklist.
+
+**5.** *(Structured around a persistent, previously-misdiagnosed error)*:
+> "The backend container still throws `PermissionError: [Errno 13] Permission denied: 'data/raw/production_plan.csv'` even after I confirmed host file permissions are correct (644, world-readable) and applied `chmod -R a+rX`. That fix didn't work, so the diagnosis must be wrong — what else could cause a container to fail reading a correctly-permissioned bind mount on Fedora?"
+
+→ Got the correct SELinux diagnosis — Fedora enforces SELinux by default, and bind mounts need their context relabeled — with the exact fix (the `:z` suffix on the volume mount). This was the least obvious bug in the project, and the prompt explicitly flagging that the first fix *didn't* work was what got a different, correct diagnosis instead of a repeat of the same one.
 
 ## Where AI Was Wrong & How I Caught It
 
