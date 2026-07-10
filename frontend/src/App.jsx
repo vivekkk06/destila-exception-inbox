@@ -49,7 +49,6 @@ export default function App() {
   const handleStatusChange = async (id, newStatus) => {
     try {
       await patchException(id, newStatus);
-      // update list in place, no full reload
       setExceptions((prev) =>
         prev.map((e) => (e.id === id ? { ...e, status: newStatus } : e))
       );

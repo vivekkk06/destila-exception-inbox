@@ -2,13 +2,14 @@
 
 ## Problem Breakdown
 
-I broke this into five sequential stages, matching the natural data-to-UI pipeline:
+I broke this into six sequential stages, matching the natural data-to-UI pipeline:
 
 1. **Inspect the data** (~30 min) — loaded both CSVs with pandas before writing any ingestion code, checked dtypes, nulls, duplicates, and cross-referenced product codes between the two files.
 2. **Ingest → raw tables** (~30 min) — dumped both CSVs into `raw_plan` / `raw_actual` tables with no transformation, so the original data is always recoverable.
 3. **Clean → clean tables** (~1 hr) — normalized product codes/plant IDs, parsed dates, deduped, and quarantined unusable rows.
 4. **Exception detection** (~30 min) — joined clean plan vs clean actual on (date, plant, product_code), applied the 0.9 / 0.7 thresholds, materialized results into an `exceptions` table.
 5. **API + Frontend** (~2–3 hrs combined) — FastAPI endpoints for list/detail/patch, then a React timeline UI consuming them.
+6. **Docker Compose (bonus)** (~1.5 hrs) — containerized both services for one-command setup; spent most of this time debugging environment-specific issues (below).
 
 ## Process Flow Diagram
 
@@ -45,7 +46,14 @@ actual_production.csv┘              │
                 Rejected/unusable rows during cleaning are
                 logged to a quarantine list rather than silently
                 dropped or silently kept.
+
+                The full pipeline above (ingest → clean → detect
+                → serve) also runs automatically inside the backend
+                Docker container on `docker-compose up`, so the
+                containerized and manual setups behave identically.
 ```
+
+See `docs/process_flow.png` for the rendered version.
 
 ## Data Decisions
 
@@ -70,6 +78,15 @@ Inspecting both CSVs before loading surfaced several real quirks:
 - `GET /exceptions/{id}` builds the 7-day trend by re-querying `clean_plan`/`clean_actual` directly (not the `exceptions` table), since not every day in the trend window is necessarily an exception — the trend needs to show the full plan-vs-actual picture, exception or not.
 - `PATCH` only accepts `acknowledged` or `resolved` via a Pydantic `Literal` type, so an invalid status value is rejected with a 422 rather than silently accepted.
 
+## Containerization Notes (Docker Compose)
+
+Getting `docker-compose up` working cleanly on Fedora surfaced two real environment issues worth documenting, since they're the kind of thing that would block a reviewer running this cold:
+
+1. **`dockerd` failed to start** with `error initializing buildkit: failed to find runc binary`. Fedora's Docker package didn't pull in `runc` as a dependency in this setup. Fixed with `sudo dnf install runc -y` and a `systemctl restart docker`.
+2. **Backend container hit `PermissionError` reading the bind-mounted CSVs**, even though host-side file permissions were correct (`644`, readable by all). Root cause was SELinux: Fedora runs SELinux in enforcing mode, and bind-mounted host directories need their SELinux context relabeled before a container can read them. Fixed by adding the `:z` suffix to the volume mount (`./backend/data:/app/data:z`), which tells Docker to relabel the mount automatically on `up`.
+
+Both issues are host/OS-specific rather than bugs in the app itself, but they're a realistic example of what "production-messiness" looks like in deployment, not just in data — which felt in the spirit of the assignment.
+
 ## Tradeoffs & Shortcuts
 
 - **SQLite instead of Postgres** — zero setup for a take-home test at this scale; the schema would translate directly if this needed to scale.
@@ -77,6 +94,7 @@ Inspecting both CSVs before loading surfaced several real quirks:
 - **No pagination** on `GET /exceptions`— dataset is small enough (~1000 rows) that it wasn't a priority; would add `limit`/`offset` for a larger dataset.
 - **No auth** — out of scope for the assignment's stated goals; would be required before this touches a real ERP.
 - **Unmatched plan/actual rows are silently skipped** rather than surfaced as their own exception category (e.g. "actual reported with no plan") — a reasonable v2 addition but not core to the deficit-exception spec.
+- **Docker images aren't multi-stage/production-optimized** — the frontend container runs the Vite dev server rather than a built+served static bundle, which is fine for a demo but not how I'd ship it.
 
 ## Next Steps
 
@@ -84,5 +102,5 @@ If I had more time, I'd add:
 - Pagination and a date-range filter on `GET /exceptions`
 - A dedicated "unmatched records" report so silently-skipped plan/actual rows aren't invisible
 - Basic auth on the PATCH endpoint (planners acting on exceptions should be identifiable)
-- Docker Compose for one-command setup
+- A production-grade multi-stage frontend Dockerfile (build static assets, serve via nginx instead of the Vite dev server)
 - Confirming the ambiguous `DD/MM` vs `MM/DD` date assumption against the actual source system rather than guessing

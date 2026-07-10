@@ -18,6 +18,7 @@ def detect():
             actual_units = actuals.get(key)
             if actual_units is None:
                 continue
+
             if plan.planned_units <= 0:
                 continue
 

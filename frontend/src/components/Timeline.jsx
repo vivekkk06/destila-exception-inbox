@@ -1,7 +1,6 @@
 import DayGroup from './DayGroup';
 
 export default function Timeline({ exceptions, onRowClick }) {
-  // group by date, preserving the API's date-desc / deficit-desc ordering
   const groups = [];
   const indexByDate = {};
 

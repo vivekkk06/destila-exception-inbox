@@ -6,9 +6,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      # :z relabels the SELinux context on the bind mount so the container
+      # can actually read the host directory (needed on Fedora/RHEL-family
+      # systems running SELinux in enforcing mode; omit :z on non-SELinux hosts)
       - ./backend/data:/app/data:z
-    # Named volume keeps the SQLite DB alive across container restarts
-    # (still gets rebuilt fresh by the ingest/clean/detect commands on each `up`)
 
   frontend:
     build:
