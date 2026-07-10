@@ -3,6 +3,7 @@ import { getExceptions, getExceptionDetail, patchException } from './api';
 import FilterBar from './components/FilterBar';
 import Timeline from './components/Timeline';
 import DetailPanel from './components/DetailPanel';
+import './App.css';
 
 export default function App() {
   const [exceptions, setExceptions] = useState([]);
@@ -59,8 +60,12 @@ export default function App() {
   };
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '900px', margin: '0 auto' }}>
-      <h1 style={{ padding: '1rem' }}>Mini Exception Inbox</h1>
+    <div className="app">
+      <header className="app-header">
+        <h1>Mini Exception Inbox</h1>
+        <p>Plan-vs-actual production deficits, grouped by day.</p>
+      </header>
+
       <FilterBar
         productCode={productCode}
         severity={severity}
@@ -68,12 +73,18 @@ export default function App() {
         onProductChange={setProductCode}
         onSeverityChange={setSeverity}
       />
-      {error && <div style={{ color: 'red', padding: '1rem' }}>{error}</div>}
+
+      {error && <div className="app-error">{error}</div>}
+
       {loading ? (
-        <div style={{ padding: '2rem' }}>Loading...</div>
+        <div className="app-loading">
+          <span className="spinner" />
+          Loading exceptions…
+        </div>
       ) : (
         <Timeline exceptions={exceptions} onRowClick={openDetail} />
       )}
+
       <DetailPanel detail={detail} onClose={() => setDetail(null)} onStatusChange={handleStatusChange} />
     </div>
   );

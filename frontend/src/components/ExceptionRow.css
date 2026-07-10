@@ -1,0 +1,90 @@
+.exception-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.exception-row:last-child {
+  border-bottom: none;
+}
+
+.exception-row:hover {
+  background-color: var(--color-bg);
+}
+
+.exception-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.exception-product {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.exception-plant {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-high {
+  color: var(--color-high);
+  background: var(--color-high-bg);
+}
+
+.badge-medium {
+  color: var(--color-medium);
+  background: var(--color-medium-bg);
+}
+
+.badge-open {
+  color: var(--color-open);
+  background: var(--color-open-bg);
+}
+
+.badge-acknowledged {
+  color: var(--color-acknowledged);
+  background: var(--color-acknowledged-bg);
+}
+
+.badge-resolved {
+  color: var(--color-resolved);
+  background: var(--color-resolved-bg);
+}
+
+.exception-numbers {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.exception-deficit {
+  color: var(--color-high);
+  font-weight: 700;
+}
+
+@media (max-width: 560px) {
+  .exception-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+  }
+}

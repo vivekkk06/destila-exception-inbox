@@ -1,4 +1,5 @@
 import DayGroup from './DayGroup';
+import './Timeline.css';
 
 export default function Timeline({ exceptions, onRowClick }) {
   const groups = [];
@@ -13,7 +14,7 @@ export default function Timeline({ exceptions, onRowClick }) {
   }
 
   if (groups.length === 0) {
-    return <div style={{ padding: '2rem', color: '#888' }}>No exceptions match the current filters.</div>;
+    return <div className="timeline-empty">No exceptions match the current filters.</div>;
   }
 
   return (
